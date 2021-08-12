@@ -1,7 +1,7 @@
 import logging
 from getpass import getpass
 from argparse import ArgumentParser
-
+import sys
 import slixmpp
 from slixmpp import ClientXMPP
 from slixmpp.exceptions import IqError, IqTimeout
@@ -17,7 +17,12 @@ class SendMessageBot(slixmpp.ClientXMPP):
     self.msg = msg
     self.add_event_handler('session_start', self.start)
     self.add_event_handler('failed_auth', self.loginFail)
+    self.add_event_handler('message', self.recieveMessage)
     # self.add_event_handler('auth_success', self.loginSuccess)
+
+  async def receiveMessage(self, msg):
+    if msg['type'] in ('normal', 'chat'):
+      print('NEW MESSAGE:\t', msg)
 
   async def start(self, event):
     self.send_presence()
@@ -29,42 +34,137 @@ class SendMessageBot(slixmpp.ClientXMPP):
   async def loginFail(self, event):
     print('\n\n\nCREDENCIALES INCORRECTAS\n\n\n')
 
-  # def loginSuccess(self, event  ):
-  #   print('\n\n\nCREDENCIALES CORRECTAS!!!!!!\n\n\n')
-
 class Client(slixmpp.ClientXMPP):
   def __init__(self, jid, password):
     try:
+      print('Loading...')
       super().__init__(jid, password)
     except:
       pass
     self.add_event_handler('session_start', self.start)
     self.add_event_handler('failed_auth', self.loginFail)
+    self.add_event_handler("groupchat_message", self.muc_message)
     self.add_event_handler('register', self.userRegister)
+    self.add_event_handler('message', self.message)
     self.received = set()
 
 
   async def start(self, event):
     self.send_presence()
+    await self.get_roster()
     try:
-      await self.get_roster()
-      response1 = input("""
-      Ingresa la opción que desees:
-      1. Mostrar usuarios conectados
-      2. Agregar usuario a contactos
-      3. Mostrar detalles de un usuario
-      4. Chatear con alguien
-      5. Unirse a chat grupal
-      6. Enviar mensaje de presencia
+      sigue = True
+      while (sigue):
+        response1 = input("""
+        Ingresa la opción que desees:
+        1. Mostrar usuarios conectados
+        2. Mostrar contactos                      - 
+        3. Agregar usuario a contactos            -
+        4. Mostrar detalles de un contacto
+        5. Chatear con alguien
+        6. Unirse a chat grupal
+        7. Enviar mensaje de presencia
+        8. Enviar archivo
+        9. Eliminar mi cuenta
+        10 Ver respuestas
+        11 Salir
+        """)
+        if response1=='1':
+          pass
+        elif response1 == '2':
+          groups = self.client_roster.groups()
+          for group in groups:
+            for jid in groups[group]:
+              name = self.client_roster[jid]['name']
+              print('Nombre: {}'.format(jid))
+              connections = self.client_roster.presence(jid)
+              for client, status in connections.items():
+                  if status['status']:
+                    print('Estado: {}'.format(status['status']))
+        elif response1 == '3':
+          userjid = input('Ingresa el JID de tu compa:\t')
+          self.send_presence_subscription(pto=userjid)
+          self.send_message(mto=userjid, mbody='Hola!', mtype='chat', mfrom=self.boundjid.bare)
+        elif response1 == '4':
+          userjid = input('Ingresa el JID de tu compa: \t')
+          print(self.client_roster[userjid])
+        elif response1=='5':
+          userjid = input('Ingresa el JID de tu compa: \t')
+          chatstate = self.Message()
+          chatstate['chat_state'] = 'composing'
+          chatstate['to'] = userjid
+          chatstate.send()
+          await self.get_roster()
+          msg = input('Ingresa el mensaje a enviar:\n')
+          self.send_message(mto=userjid,
+                            mbody=msg,
+                            mtype='chat')
+          chatstate = self.Message()
+          chatstate['chat_state'] = 'active'
+          chatstate['to'] = userjid
+          chatstate.send()
+          await self.get_roster()
+        elif response1=='6':
+          room = input('Ingresa el JID del room al que deseas entrar: \t')
+          nickname = input('Ingresa tu nickname: \t')
+          await self.plugin['xep_0045'].joinMUC(room ,nickname, wait=True)
 
-      """)
-      if response1 == '1':
-        user.presences_received = asyncio.Event()
+        elif response1=='7':
+          loop = True
+          while(loop):
+            print(
+                '''
+                1. Available
+                2. Unavailable
+                3. Do not disturb
+                '''
+            )
+            presence = input('Elija un estado: ')
+            if presence == '1':
+              presence_show = 'chat'
+              status = 'Available'
+              loop = False
+            elif presence == '2':
+              presence_show = 'away'
+              status = 'Unavailable'
+              loop = False
+            elif presence == '3':
+              presence_show = 'dnd'
+              status = 'Do not Disturb'
+              loop = False
+            else:
+              print('Opcion invalida')
+          try:
+            self.send_presence(pshow=presence_show, pstatus=status)
+            logging.info('Presence set')
+          except IqError:
+            logging.error('Error al enviar presencia')
+          except IqTimeout:
+            logging.error('No hubo respuesta del servidor')
+        elif response1=='8':
+          pass
+        elif response1=='9':
+          self.connect()
+          self.delete_account()
+        elif response1=='10':
+          await self.get_roster()
+        elif response1=='11':
+          sigue=False
+          self.disconnect()
+          return None
     except IqError as err:
       print('Error: %s' % err.iq['error']['condition'])
     except IqTimeout:
       print('Error: Request timed out')
     
+  async def muc_message(self, msg):
+    print('MESSAGE FROM {}: {}'.format(msg['from'], msg['body']))
+    if msg['mucnick'] != self.nick:
+      self.send_message(mto=msg['from'].bare,
+                        mbody=msg['body'],
+                        mtype='groupchat')
+    # PENDING IMPLEMENTATION
+
   async def userRegister(self, event):
     resp = self.Iq()
     resp['type'] = 'set'
@@ -96,52 +196,26 @@ class Client(slixmpp.ClientXMPP):
     print('CREDENCIALES INCORRECTAS')
     self.disconnect()
 
-# if __name__ == '__main__':
-#     # Setup the command line arguments.
-#     parser = ArgumentParser(description=SendMessageBot.__doc__)
+  async def logOut(self):
+    self.disconnect()
 
-#     # Output verbosity options.
-#     parser.add_argument("-q", "--quiet", help="set logging to ERROR",
-#                         action="store_const", dest="loglevel",
-#                         const=logging.ERROR, default=logging.INFO)
-#     parser.add_argument("-d", "--debug", help="set logging to DEBUG",
-#                         action="store_const", dest="loglevel",
-#                         const=logging.DEBUG, default=logging.INFO)
+  async def message(self, msg):
+    logging.info(msg)
+    if msg['type'] in ('normal', 'chat'):
+      print('\n{} *DICE*: {}\t'.format(msg['from'], msg['body']))
 
-#     # JID and password options.
-#     parser.add_argument("-j", "--jid", dest="jid",
-#                         help="JID to use")
-#     parser.add_argument("-p", "--password", dest="password",
-#                         help="password to use")
-#     parser.add_argument("-t", "--to", dest="to",
-#                         help="JID to send the message to")
-#     parser.add_argument("-m", "--message", dest="message",
-#                         help="message to send")
+  def delete_account(self):
+    self.register_plugin("xep_0030")
+    self.register_plugin("xep_0004")
+    self.register_plugin("xep_0199")
+    self.register_plugin("xep_0066")
+    self.register_plugin("xep_0077")
 
-#     args = parser.parse_args()
+    delete = self.Iq()
+    delete['type'] = 'set'
+    delete['from'] = self.boundjid.user
+    delete['register']['remove'] = True
+    delete.send()
 
-#     # Setup logging.
-#     logging.basicConfig(level=args.loglevel,
-#                         format='%(levelname)-8s %(message)s')
-
-#     if args.jid is None:
-#         args.jid = input("Username: ")
-#     if args.password is None:
-#         args.password = getpass("Password: ")
-#     if args.to is None:
-#         args.to = input("Send To: ")
-#     if args.message is None:
-#         args.message = input("Message: ")
-
-#     # Setup the EchoBot and register plugins. Note that while plugins may
-#     # have interdependencies, the order in which you register them does
-#     # not matter.
-#     xmpp = SendMessageBot(args.jid, args.password, args.to, args.message)
-#     xmpp.register_plugin('xep_0030')  # Service Discovery
-#     xmpp.register_plugin('xep_0199')  # XMPP Ping
-
-#     # Connect to the XMPP server and start processing XMPP stanzas.
-#     xmpp.connect()
-#     xmpp.process(forever=False)
-
-
+    print("Account deleted succesfully.")
+    self.disconnect() 
