@@ -54,11 +54,12 @@ class Client(slixmpp.ClientXMPP):
         4. Mostrar detalles de un contacto
         5. Chatear con alguien
         6. Unirse a chat grupal
-        7. Enviar mensaje de presencia
-        8. Enviar archivo
-        9. Eliminar mi cuenta
-        10 Ver respuestas
-        11 Salir
+        7. Enviar mensaje a chat grupal
+        8. Enviar mensaje de presencia
+        9. Enviar archivo
+        10. Eliminar mi cuenta
+        11 Ver respuestas
+        12 Salir
         """)
         if response1=='1':
           pass
@@ -112,12 +113,12 @@ class Client(slixmpp.ClientXMPP):
           await self.get_roster()
 
         elif response1=='6':
-          # Enter a group chat, identified by ROOM, ande define a NICKNAME
-          room = input('Ingresa el JID del room al que deseas entrar: \t')
-          nickname = input('Ingresa tu nickname: \t')
-          self.plugin['xep_0045'].join_muc(room ,nickname)
-
+          #Join a group chat
+          self.join_group()
         elif response1=='7':
+          self.send_group_message()
+
+        elif response1=='8':
           # Define a presence message.
           loop = True
           while(loop):
@@ -151,18 +152,36 @@ class Client(slixmpp.ClientXMPP):
             logging.error('Error al enviar presencia')
           except IqTimeout:
             logging.error('No hubo respuesta del servidor')
-        elif response1=='8':
-          pass
         elif response1=='9':
+          try:
+            jid = input('Ingresa el JID de tu compa')
+            filename=input('Ingresa el path al archivo que quieras enviar:\t')
+            url = await self['xep_0363'].upload_file(
+                filename, domain=None, timeout=10
+            )
+          except IqTimeout:
+              raise TimeoutError('Could not send message in time')
+          print('Upload success!')
+
+          print('Sending file to %s', jid)
+          html = (
+              f'<body xmlns="http://www.w3.org/1999/xhtml">'
+              f'<a href="{url}">{url}</a></body>'
+          )
+          message = self.make_message(mto=jid, mbody=url, mhtml=html)
+          message['oob']['url'] = url
+          message.send()
+          await self.get_roster()
+        elif response1=='10':
           # Delete my account
           self.connect()
           self.delete_account()
           self.disconnect()
           return None
-        elif response1=='10':
+        elif response1=='11':
           # Get the roster (this triggers the end of the event loop)
           await self.get_roster()
-        elif response1=='11':
+        elif response1=='12':
           # Exit
           self.send_presence(pshow='Desconectado', pstatus='away')
           sigue=False
@@ -174,16 +193,9 @@ class Client(slixmpp.ClientXMPP):
       print('Error: Request timed out')
     
   async def muc_message(self, msg):
-    # Called when a room message is received,
-    # automatically responds if user.JID is mentioned  
-
+    # Called when a room message is received
     # Show received message
     print('MESSAGE FROM {}: {}'.format(msg['from'], msg['body']))
-    # Checks if the message is not sent by the bot itself
-    if msg['mucnick'] != self.nick:
-      self.send_message(mto=msg['from'].bare,
-                        mbody=msg['body'],
-                        mtype='groupchat')
 
   async def userRegister(self, event):
     # Called when a register event is triggered
@@ -213,7 +225,7 @@ class Client(slixmpp.ClientXMPP):
     # Called when a message is received, event message triggered
     # Show received message
     if msg['type'] in ('normal', 'chat'):
-      print('\n{} *DICE*: {}\t'.format(msg['from'], msg['body']))
+      print('\n{} *DICE*: {}\t'.format(msg['from'].split('/')[0], msg['body']))
 
   def delete_account(self):
     # Delete account, called when user selects it in the menu.
@@ -231,3 +243,16 @@ class Client(slixmpp.ClientXMPP):
 
     print("Cuenta eliminada con exito")
     self.disconnect() 
+
+  def join_group(self):
+    # Join a group chat
+    room = input('Ingresa el nombre del grupo:\t')
+    nickname = input('Ingresa tu nickname:\t')
+    self.plugin['xep_0045'].join_muc(
+        '{}@conference.alumchat.xyz'.format(room), nickname)
+
+  def send_group_message(self):
+    # Send mesage to group chat
+    room = input('Ingresa el nombre del grupo:\t')
+    message = input('Ingresa el mensaje que deseas enviar:\t')
+    self.send_message(mto=room+"@conference.alumchat.xyz", mbody=message, mtype='groupchat')

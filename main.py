@@ -8,7 +8,6 @@
 import logging
 from getpass import getpass
 from argparse import ArgumentParser
-from EchoBot import EchoBot
 import slixmpp
 from client import Client
 
@@ -20,17 +19,18 @@ if __name__ == '__main__':
   args = parser.parse_args()
   logging.basicConfig(level=args.loglevel, format='%(levelname)-8s %(message)s')
 
-  respuesta = input("""
-  \t\t\tMENU
-  Bienvenido a tu cliente XMPP favorito, ingresa el numero de la opcion que desees:
-    1. Iniciar sesion con una cuenta existente
-    2. Crear una nueva cuenta
-  """)
-
+  # respuesta = input("""
+  # \t\t\tMENU
+  # Bienvenido a tu cliente XMPP favorito, ingresa el numero de la opcion que desees:
+  #   1. Iniciar sesion con una cuenta existente
+  #   2. Crear una nueva cuenta
+  # """)
+  respuesta='1'
   if respuesta=='1':
-      jid = input('Ingresa tu JID:\t\n')
-      password = input('ingresa tu contrasena:\t\n')
-      user = Client(jid, password)
+      # jid = input('Ingresa tu JID:\t\n')
+      # password = input('ingresa tu contrasena:\t\n')
+      # user = Client(jid, password)
+      user = Client('marco@alumchat.xyz', '12345')
 
       # Plugin registration.
       user.register_plugin("xep_0004")  # Data forms
@@ -41,6 +41,9 @@ if __name__ == '__main__':
       user.register_plugin('xep_0128')  # Service Discovery Extensions
       user.register_plugin("xep_0199")  # XMPP Ping
       user.register_plugin('xep_0045')  # Multi-User-Chat
+      user.register_plugin('xep_0363')
+
+
 
       # Connect to the XMPP server and start processing XMPP stanzas.
       user.connect()

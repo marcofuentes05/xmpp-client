@@ -1,17 +1,17 @@
 # About
 
-The purpose of this project is to implement a simple XMPP client that is capable of sending and receiving messages, files and updates from users and contacts. The project was made using Python3.8.10 and the `sliXMPP` library.
+The purpose of this project is to implement a simple XMPP client that is capable of sending and receiving messages, files and updates from users and contacts. The project was made using Python3.7.0 and the `sliXMPP` library.
 
 ### Project Functionalities
-- [ ] Register a new account
-- [ ] Log in with an existing account
-- [ ] Log out of a current session
-- [ ] Delete account from server
-- [ ] Retreive user's contact list
-- [ ] Show user details
-- [ ] 1 on 1 chat
+- [x] Register a new account
+- [x] Log in with an existing account
+- [x] Log out of a current session
+- [x] Delete account from server
+- [x] Retreive user's contact list
+- [x] Show user details
+- [x] 1 on 1 chat
 - [ ] Group Chat
-- [ ] Send Presence Stanzas
+- [x] Send Presence Stanzas
 - [ ] Send/Receive Files
 
 ## Difficulties
@@ -23,7 +23,10 @@ The main difficulty in developing this project was definetively the lack of docu
 
 # Requirements
 
-This project requires no modules outside of Python3.x and sliXMPP.
+This project requires the following modules:
+- Python3.7.0
+- sliXMPP
+- aiohttp
 
 # Configuration
 
