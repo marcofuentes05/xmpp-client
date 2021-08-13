@@ -48,23 +48,19 @@ class Client(slixmpp.ClientXMPP):
       while (sigue):
         response1 = input("""
         Ingresa la opción que desees:
-        1. Mostrar usuarios conectados
-        2. Mostrar contactos
-        3. Agregar usuario a contactos
-        4. Mostrar detalles de un contacto
-        5. Chatear con alguien
-        6. Unirse a chat grupal
-        7. Enviar mensaje a chat grupal
-        8. Enviar mensaje de presencia
-        9. Enviar archivo
-        10. Eliminar mi cuenta
-        11 Ver respuestas
-        12 Salir
+        1. Mostrar contactos
+        2. Agregar usuario a contactos
+        3. Mostrar detalles de un contacto
+        4. Chatear con alguien
+        5. Unirse a chat grupal
+        6. Enviar mensaje a chat grupal
+        7. Enviar mensaje de presencia
+        8. Enviar archivo
+        9. Eliminar mi cuenta
+        10. Ver respuestas
+        11. Salir
         """)
-        if response1=='1':
-          pass
-        
-        elif response1 == '2':
+        if response1 == '1':
           # Iterate over client_roster to show user's contact list
           groups = self.client_roster.groups()
           for group in groups:
@@ -76,13 +72,13 @@ class Client(slixmpp.ClientXMPP):
                   if status['status']:
                     print('Estado: {}'.format(status['status']))
         
-        elif response1 == '3':
+        elif response1 == '2':
           # Add a user to the contact list.
           userjid = input('Ingresa el JID de tu compa:\t')
           self.send_presence_subscription(pto=userjid)
           self.send_message(mto=userjid, mbody='Hola!', mtype='chat', mfrom=self.boundjid.bare)
         
-        elif response1 == '4':
+        elif response1 == '3':
           # Show details of a contact
           userjid = input('Ingresa el JID de tu compa: \t')
           user = self.client_roster[userjid]
@@ -92,7 +88,7 @@ class Client(slixmpp.ClientXMPP):
             if status['status']:
                 print('Estado: {}'.format(status['status']))
 
-        elif response1=='5':
+        elif response1=='4':
           # Chat with a user, identified by JID
           userjid = input('Ingresa el JID de tu compa: \t')
           chatstate = self.Message()
@@ -112,13 +108,13 @@ class Client(slixmpp.ClientXMPP):
           # _chapuz_ to get the message in time.
           await self.get_roster()
 
-        elif response1=='6':
+        elif response1=='5':
           #Join a group chat
           self.join_group()
-        elif response1=='7':
+        elif response1=='6':
           self.send_group_message()
 
-        elif response1=='8':
+        elif response1=='7':
           # Define a presence message.
           loop = True
           while(loop):
@@ -152,7 +148,7 @@ class Client(slixmpp.ClientXMPP):
             logging.error('Error al enviar presencia')
           except IqTimeout:
             logging.error('No hubo respuesta del servidor')
-        elif response1=='9':
+        elif response1=='8':
           try:
             jid = input('Ingresa el JID de tu compa')
             filename=input('Ingresa el path al archivo que quieras enviar:\t')
@@ -172,16 +168,16 @@ class Client(slixmpp.ClientXMPP):
           message['oob']['url'] = url
           message.send()
           await self.get_roster()
-        elif response1=='10':
+        elif response1=='9':
           # Delete my account
           self.connect()
           self.delete_account()
           self.disconnect()
           return None
-        elif response1=='11':
+        elif response1=='10':
           # Get the roster (this triggers the end of the event loop)
           await self.get_roster()
-        elif response1=='12':
+        elif response1=='11':
           # Exit
           self.send_presence(pshow='Desconectado', pstatus='away')
           sigue=False
@@ -225,7 +221,7 @@ class Client(slixmpp.ClientXMPP):
     # Called when a message is received, event message triggered
     # Show received message
     if msg['type'] in ('normal', 'chat'):
-      print('\n{} *DICE*: {}\t'.format(msg['from'].split('/')[0], msg['body']))
+      print('\n{} *DICE*: {}\t'.format(msg['from'], msg['body']))
 
   def delete_account(self):
     # Delete account, called when user selects it in the menu.

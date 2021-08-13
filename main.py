@@ -19,19 +19,16 @@ if __name__ == '__main__':
   args = parser.parse_args()
   logging.basicConfig(level=args.loglevel, format='%(levelname)-8s %(message)s')
 
-  # respuesta = input("""
-  # \t\t\tMENU
-  # Bienvenido a tu cliente XMPP favorito, ingresa el numero de la opcion que desees:
-  #   1. Iniciar sesion con una cuenta existente
-  #   2. Crear una nueva cuenta
-  # """)
-  respuesta='1'
+  respuesta = input("""
+  \t\t\tMENU
+  Bienvenido a tu cliente XMPP favorito, ingresa el numero de la opcion que desees:
+    1. Iniciar sesion con una cuenta existente
+    2. Crear una nueva cuenta
+  """)
   if respuesta=='1':
-      # jid = input('Ingresa tu JID:\t\n')
-      # password = input('ingresa tu contrasena:\t\n')
-      # user = Client(jid, password)
-      user = Client('marco@alumchat.xyz', '12345')
-
+      jid = input('Ingresa tu JID:\t\n')
+      password = input('ingresa tu contrasena:\t\n')
+      user = Client(jid, password)
       # Plugin registration.
       user.register_plugin("xep_0004")  # Data forms
       user.register_plugin("xep_0030")  # Service Discovery
