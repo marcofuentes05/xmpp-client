@@ -1,3 +1,10 @@
+# --------------------------------------------
+# main.py                                    |
+# Marco Fuentes - 18188                      |
+# Guatemala, 2021                            |
+# Implements Client class to use XMPP        |
+# --------------------------------------------
+
 import logging
 from getpass import getpass
 from argparse import ArgumentParser
@@ -12,22 +19,20 @@ if __name__ == '__main__':
   # Setup logging.
   args = parser.parse_args()
   logging.basicConfig(level=args.loglevel, format='%(levelname)-8s %(message)s')
-  
-  print("""
+
+  respuesta = input("""
   \t\t\tMENU
   Bienvenido a tu cliente XMPP favorito, ingresa el numero de la opcion que desees:
     1. Iniciar sesion con una cuenta existente
     2. Crear una nueva cuenta
   """)
 
-  # respuesta = input('')
-  respuesta = '1'
   if respuesta=='1':
-      # jid = input('Ingresa tu JID:\t\n')
-      # password = input('ingresa tu contrasena:\t\n')
-      # user = Client(jid, password)
-      user = Client('marco@alumchat.xyz', '12345')
+      jid = input('Ingresa tu JID:\t\n')
+      password = input('ingresa tu contrasena:\t\n')
+      user = Client(jid, password)
 
+      # Plugin registration.
       user.register_plugin("xep_0004")  # Data forms
       user.register_plugin("xep_0030")  # Service Discovery
       user.register_plugin("xep_0066")  # Out-of-band Data
@@ -37,14 +42,16 @@ if __name__ == '__main__':
       user.register_plugin("xep_0199")  # XMPP Ping
       user.register_plugin('xep_0045')  # Multi-User-Chat
 
+      # Connect to the XMPP server and start processing XMPP stanzas.
       user.connect()
+
+      # Send the message and expect a reply.
       user.process()
 
   elif respuesta=='2':
-      # jid = input('Ingresa tu JID:\t\n')
-      # password = input('ingresa tu contrasena:\t\n')
-      # xmpp = Client(jid, password)
-      xmpp = Client('marco@alumchat.xyz', '12345')
+      jid = input('Ingresa tu JID:\t\n')
+      password = input('ingresa tu contrasena:\t\n')
+      xmpp = Client(jid, password)
       xmpp.register_plugin('xep_0030')
       xmpp.register_plugin('xep_0004')
       xmpp.register_plugin('xep_0199')
