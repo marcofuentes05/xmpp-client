@@ -32,7 +32,8 @@ This project requires the following modules:
 
 To install dependencies, run
 ```
-pip3 install sliXMPP
+pip3.7 install sliXMPP
+pip3.7 install aiohttp
 ```
 
 Make sure to be connected to a secure and reliable internet provider (**unlike** Claro Guatemala)
