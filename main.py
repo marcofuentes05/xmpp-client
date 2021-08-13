@@ -12,12 +12,12 @@ if __name__ == '__main__':
   # Setup logging.
   args = parser.parse_args()
   logging.basicConfig(level=args.loglevel, format='%(levelname)-8s %(message)s')
+  
   print("""
-    \t\t\tMENU
-    Bienvenido a tu cliente XMPP favorito, ingresa el numero de la opcion que desees:
+  \t\t\tMENU
+  Bienvenido a tu cliente XMPP favorito, ingresa el numero de la opcion que desees:
     1. Iniciar sesion con una cuenta existente
     2. Crear una nueva cuenta
-    3. Eliminar una cuenta del servidor
   """)
 
   # respuesta = input('')
@@ -53,12 +53,3 @@ if __name__ == '__main__':
       xmpp['xep_0077'].force_registration = True
       xmpp.connect()
       xmpp.process()
-      # xmpp.plugin['xep_0077'].make_registration_form
-  elif respuesta=='3':
-    # jid = input('Ingresa el JID de la cuenta a eliminar:\t\n')
-    # password = input('Ingresa la contraseña de la cuenta:\t\n')
-    # client = Client(jid, password)
-    client = Client('marco@alumchat.xyz', '12345')
-    client.connect()
-    client.process()
-    client.delete_account()
