@@ -10,9 +10,9 @@ The purpose of this project is to implement a simple XMPP client that is capable
 - [x] Retreive user's contact list
 - [x] Show user details
 - [x] 1 on 1 chat
-- [ ] Group Chat
+- [x] Group Chat
 - [x] Send Presence Stanzas
-- [ ] Send/Receive Files
+- [x] Send/Receive Files
 
 ## Difficulties
 The main difficulty in developing this project was definetively the lack of documentation on `sliXMPP`'s website. It made the whole process longer.
